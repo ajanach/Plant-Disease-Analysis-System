@@ -156,10 +156,11 @@ export const ImageUpload = () => {
     if (image) {
       let formData = new FormData();
       formData.append("file", selectedFile);
-      let res = await axios({
-        method: "post",
-        url: process.env.REACT_APP_API_URL,
-        data: formData,
+      let res = await axios.post(process.env.REACT_APP_API_URL, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+        maxContentLength: 1024 * 1024 * 50, // Set the maximum allowed size to 50 megabytes
       });
       if (res.status === 200) {
         setData(res.data);
@@ -244,6 +245,7 @@ export const ImageUpload = () => {
                   acceptedFiles={['image/*']}
                   dropzoneText={"Drag and drop an image of a plant leaf to process"}
                   onChange={onSelectFile}
+                  maxFileSize={50000000}
                 />
               </CardContent>}
               {data && <CardContent className={classes.detail}>

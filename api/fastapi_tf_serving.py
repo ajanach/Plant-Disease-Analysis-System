@@ -14,7 +14,7 @@ app = FastAPI()
 
 origins = [
     os.getenv("CORS_URI_1", "http://localhost"),
-    os.getenv("CORS_URI_2", "http://localhost:3000"),
+    os.getenv("CORS_URI_2", "http://localhost:80"),
 ]
 app.add_middleware(
     CORSMiddleware,
@@ -42,7 +42,7 @@ async def ping():
 # endpoint for version 1
 @app.post("/predict/v1")
 async def predict(
-    file: UploadFile = File(...)
+    file: UploadFile = File(..., max_bytes=40000000)
 ):
     image = read_file_as_image(await file.read())
     img_batch = np.expand_dims(image, 0)
@@ -65,7 +65,7 @@ async def predict(
 # endpoint for version 2
 @app.post("/predict/v2")
 async def predict(
-    file: UploadFile = File(...)
+    file: UploadFile = File(..., max_bytes=40000000)
 ):
     image = read_file_as_image(await file.read())
     img_batch = np.expand_dims(image, 0)
@@ -86,4 +86,4 @@ async def predict(
     }
 
 if __name__ == "__main__":
-    uvicorn.run(app, host = "localhost", port = 8888)
+    uvicorn.run(app, host = "0.0.0.0", port = 8080)

@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fastapi
+  namespace: production
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: fastapi
+  template:
+    metadata:
+      labels:
+        app: fastapi
+    spec:
+      containers:
+      - name: fastapi
+        image: ajanach/plant_disease_fastapi:1.0.0
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+        env:
+        - name: ENDPOINT_V1
+          value: "http://tf-serving:8501/v1/models/potato_model/versions/1:predict"
+        - name: ENDPOINT_V2
+          value: "http://tf-serving:8501/v1/models/potato_model/versions/2:predict"
+        - name: CORS_URI_1
+          value: "*"
+        - name: CORS_URI_2
+          value: ""
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: fastapi
+  namespace: production
+spec:
+  selector:
+    app: fastapi
+  ports:
+  - port: 8080
+    targetPort: 8080
+  type: ClusterIP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: fastapi
+  namespace: production
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    kubernetes.io/ingress.class: nginx
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /fastapi(/|$)(.*)
+        pathType: Prefix
+        backend:
+          service:
+            name: fastapi
+            port:
+              number: 8080
+
+

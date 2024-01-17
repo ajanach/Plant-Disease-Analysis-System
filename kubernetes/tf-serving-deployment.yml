@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tf-serving
+  namespace: production
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: tf-serving
+  template:
+    metadata:
+      labels:
+        app: tf-serving
+    spec:
+      containers:
+      - name: tf-serving
+        image: ajanach/plant_disease_tf:1.0.0
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8501
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tf-serving
+  namespace: production
+spec:
+  selector:
+    app: tf-serving
+  ports:
+  - port: 8501 # must be the same
+    targetPort: 8501 # must be the same
+  type: ClusterIP

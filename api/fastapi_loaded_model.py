@@ -1,15 +1,29 @@
 from fastapi import FastAPI, File, UploadFile
 import uvicorn
+from fastapi.middleware.cors import CORSMiddleware
 import numpy as np
 from io import BytesIO
 from PIL import Image
 import tensorflow as tf
+import os
 
 app = FastAPI()
 
+origins = [
+    os.getenv("CORS_URI_1", "http://localhost"),
+    os.getenv("CORS_URI_2", "http://localhost:80"),
+]
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 # load models
-PROD_MODEL = tf.keras.models.load_model("saved_models/potato/1") # trained on 50 epochs
-BETA_MODEL = tf.keras.models.load_model("saved_models/potato/2") # trained on 60 epochs
+PROD_MODEL = tf.keras.models.load_model("/mnt/f/hackaton/saved_models/potato") # trained on 50 epochs
+BETA_MODEL = tf.keras.models.load_model("/mnt/f/hackaton/saved_models/potato") # trained on 60 epochs
 
 CLASS_NAMES = ["Early Blight", "Late Blight", "Healthy"]
 
@@ -54,4 +68,4 @@ async def predict(file: UploadFile): # argument will be a file sent by mobile ap
     }
 
 if __name__ == "__main__":
-    uvicorn.run(app, host='localhost', port=8888)
+    uvicorn.run(app, host='0.0.0.0', port=8080)

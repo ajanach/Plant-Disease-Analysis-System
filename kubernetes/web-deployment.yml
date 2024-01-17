@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-frontend
+  namespace: production
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: web-frontend
+  template:
+    metadata:
+      labels:
+        app: web-frontend
+    spec:
+      containers:
+      - name: web-frontend
+        image: ajanach/plant_disease_web:1.0.1
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 80
+        env:
+        - name: MY_APP_API
+          value: "http://20.76.39.76/fastapi/predict/v2"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: web-frontend
+  namespace: production
+spec:
+  selector:
+    app: web-frontend
+  ports:
+  - port: 80
+    targetPort: 80
+  type: ClusterIP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: web-frontend
+  namespace: production
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$1
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+    nginx.ingress.kubernetes.io/cors-allow-origin: "http://20.76.39.76/"
+    kubernetes.io/ingress.class: nginx
+spec:
+  rules:
+  #- host: your-ingress-hostname.com
+  - http:
+      paths:
+      - path: /(.*)
+        pathType: Prefix
+        backend:
+          service:
+            name: web-frontend
+            port:
+              number: 80

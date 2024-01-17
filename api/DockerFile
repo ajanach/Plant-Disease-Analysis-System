@@ -1,11 +1,17 @@
-FROM python:3.9
+# Use an official Python runtime as a parent image
+FROM python:3.9-slim
 
-WORKDIR /code
+# Set the working directory to /app
+WORKDIR /app
 
-COPY ./requirements.txt /code/requirements.txt
+# Copy only the necessary files into the container
+COPY fastapi_tf_serving.py requirements.txt /app/
 
-RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
+# Install any needed packages specified in requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
-COPY ../api /code/app
+# Make port 8888 available to the world outside this container
+EXPOSE 8080
 
-CMD ["uvicorn", "app.fastapi_tf_serving:app", "--host", "0.0.0.0", "--port", "80"]
+# Run your FastAPI script
+CMD ["python", "fastapi_tf_serving.py"]
